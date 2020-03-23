@@ -40,7 +40,15 @@ namespace Kaleidoscope.Kalcium.TestClient
                 kalcClient.KalcHttp.IgnoreKalcVersion = true;
 
                 await Login();
+            }
+            catch (KalcHttpException exception)
+            {
+                Console.WriteLine($"ERROR [{exception.StatusCode}] {exception.Error.Message ?? exception.Error.ShortMessage ?? exception.HttpResponse.ReasonPhrase}");
+                return;
+            }
 
+            try
+            {
                 myTermbases = await QueryTermbases();
                 await Search();
 
@@ -51,16 +59,25 @@ namespace Kaleidoscope.Kalcium.TestClient
                 var termRequest = await CreateTermRequest();
                 await DeleteTermRequest(termRequest);
 
-
-                await Logout();
-
-                Console.WriteLine("Tests have been finished");
-
             }
             catch (KalcHttpException exception)
             {
-                Console.WriteLine($"ERROR [{exception.StatusCode}] {exception.Error.Message ?? exception.Error.ShortMessage ?? exception.HttpResponse.ReasonPhrase}");
+                Console.WriteLine(
+                    $"ERROR [{exception.StatusCode}] {exception.Error.Message ?? exception.Error.ShortMessage ?? exception.HttpResponse.ReasonPhrase}");
             }
+
+            try
+            {
+                await Logout();
+            }
+            catch (KalcHttpException exception)
+            {
+                Console.WriteLine(
+                    $"ERROR [{exception.StatusCode}] {exception.Error.Message ?? exception.Error.ShortMessage ?? exception.HttpResponse.ReasonPhrase}");
+            }
+
+            Console.WriteLine("Tests have been finished");
+
 
             Console.ReadLine();
         }
@@ -203,7 +220,7 @@ namespace Kaleidoscope.Kalcium.TestClient
 
             //test reading entry
             var queryEntryResult = await kalcClient.Terminology.GetEntriesByUUIDAsync(tbDef.TermbaseId, new string[] { createdEntry.Id.UUID },
-                termbase.LanguageIds, false, false, true, false);
+                termbase.LanguageIds, false, false, true, false, false);
             var queriedEntry = queryEntryResult.Entries[0];
             if (queriedEntry != null)
             {
@@ -266,7 +283,7 @@ namespace Kaleidoscope.Kalcium.TestClient
             };
             var newTermRequestId = await kalcClient.TermRequests.CreateTermRequestAsync(createTermRequestModel, null, null);
 
-            return (await kalcClient.TermRequests.GetTasksByIdAsync(new[] { newTermRequestId }, false))[0];
+            return (await kalcClient.TermRequests.GetTasksByIdAsync(new[] { newTermRequestId }, false, false))[0];
         }
 
 
