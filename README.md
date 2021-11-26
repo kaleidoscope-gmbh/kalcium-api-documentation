@@ -20,5 +20,11 @@ To facilitate the development, we publish a [nuget package `(Kaleidoscope.Kalciu
 ## Examples
 
 This repository contains sample code in the folder `test-client` to illustrate how to use the published API via the nuget package in a simple .NET Core console application. 
+ * Login with a user
+ * Query frequently used data
+ * Search for terms
+ * Try to create an entry
+ * Try to create a term requests
+ * Logout
 
 
