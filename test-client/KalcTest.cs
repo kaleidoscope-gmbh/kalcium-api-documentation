@@ -116,38 +116,30 @@ namespace Kaleidoscope.Kalcium.TestClient
 
         private async Task Search(Termbase termbase)
         {
-            var term = "";
+            var term = ""; //term to search for
             Log($"Test searching for '{term}'");
             //for high performance search, use kalcClient.Search.SearchRawAsync instead
-            var results = await kalcClient.SearchService.SearchAsync("",
-                SearchMode.Prefix,
-                null,
-                false,
-                0, // start index
-                20, // max number of hits to search for
-                termbase.LanguageIds, // source language ids - where the term is searched for
-                termbase.LanguageIds, // target language ids - languages to include in the results
-                new List<UserSearchTermbaseSettings>
-                {
-                    new UserSearchTermbaseSettings
-                    {
-                        TermbaseId = termbase.Id // termbases to search for
-                    }
-                }, null,
-                null,
-                null,
-                null, 
-                true);
+            var results = await kalcClient.SearchService.SearchAsync(new SearchRequest
+            {
+                Term = term, 
+                Mode = SearchMode.Prefix,
+                StartIndex = 0, // start index
+                MaxCount = 20,// max number of hits to search for
+                SourceLanguageIds = termbase.LanguageIds,
+                TargetLanguageIds = termbase.LanguageIds,
+                TermbaseSettings = new List<SearchTermbaseSettings> { new SearchTermbaseSettings { TermbaseId = termbase.Id } }, // termbases to search for
+                Feature = SearchFeature.Search,
+            });
             Log($" > Total number of matches: {results.Total}");
             Log($" > Number of hits returned: {results.Hits.Count}");
             Log($" > Number of related entries: {results.Entries.Count}");
         }
 
-        private async Task DeleteEntry(string entryUUID, int termbaseId)
+        private async Task DeleteEntry(string entryUuid, int termbaseId)
         {
-            Log($"Deleting entry {entryUUID}");
-            await kalcClient.TerminologyService.DeleteEntryAsync(entryUUID, termbaseId);
-            Log($" > Entry {entryUUID} has been deleted");
+            Log($"Deleting entry {entryUuid}");
+            await kalcClient.TerminologyService.DeleteEntryAsync(entryUuid, termbaseId);
+            Log($" > Entry {entryUuid} has been deleted");
         }
 
         private async Task<Entry> CreateEntry(Termbase termbase)
