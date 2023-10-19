@@ -4,15 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Kaleidoscope.Kalcium.Client;
+using Kaleidoscope.Kalcium.Client.Models.SearchSettings;
 using Kaleidoscope.Kalcium.Client.Models.TaskManagement;
 using Kaleidoscope.Kalcium.Client.Models.Terminology;
-using Kaleidoscope.Kalcium.Client.Models.UserManagement;
 using Kaleidoscope.Kalcium.Client.Services;
 using Newtonsoft.Json;
 
 namespace Kaleidoscope.Kalcium.TestClient
 {
-    public class KalcTest
+    public partial class KalcTest
     {
         private readonly string serverUrl;
         private KalcClient kalcClient;
@@ -59,6 +59,19 @@ namespace Kaleidoscope.Kalcium.TestClient
                 await DeleteEntry(entry.Id.UUID, entry.TermbaseId);
                 var termRequest = await CreateTermRequest(termbase);
                 await DeleteTermRequest(termRequest);
+            }
+            catch (KalcHttpException exception)
+            {
+                LogKalcError(exception);
+            }
+            catch (Exception ex)
+            {
+                Log(ex.ToString());
+            }
+
+            try
+            {
+                await RunSegmentAnalysisAsync();
             }
             catch (KalcHttpException exception)
             {
@@ -203,7 +216,7 @@ namespace Kaleidoscope.Kalcium.TestClient
             Log(JsonConvert.SerializeObject(createdEntry, Formatting.Indented));
 
             //test reading entry
-            var queryEntryResult = await kalcClient.TerminologyService.GetEntriesByUUIDAsync(tbDef.TermbaseId, new string[] { createdEntry.Id.UUID },
+            var queryEntryResult = await kalcClient.TerminologyService.GetEntriesByUUIDAsync(tbDef.TermbaseId, new[] { createdEntry.Id.UUID },
                 termbase.LanguageIds, false, false, true, false, false);
             var queriedEntry = queryEntryResult.Entries[0];
             if (queriedEntry != null)
@@ -212,7 +225,7 @@ namespace Kaleidoscope.Kalcium.TestClient
                 Log(JsonConvert.SerializeObject(queriedEntry, Formatting.Indented));
             }
 
-            if (imageFieldDef != null)
+            if (imageFieldDef != null && queriedEntry != null)
             {
                 var fileName = queriedEntry.Fields.Last().Value;
                 var streamResult = await kalcClient.TerminologyService.GetMediaFileAsync(
