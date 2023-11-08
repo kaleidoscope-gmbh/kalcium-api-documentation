@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Kaleidoscope.Kalcium.Client.Models.CheckTerm;
 
@@ -30,16 +31,24 @@ namespace Kaleidoscope.Kalcium.TestClient
             var allLanguageIds = termbases.SelectMany(x => x.LanguageIds).Distinct().ToList();
             var languages = await kalcClient.TerminologyService.GetLanguagesAsync(allLanguageIds);
             var english = languages.FirstOrDefault(x => x.Code == "en-US"); //if you only have language code, you can determine language like this
-            var sourceLanguage = allLanguageIds.Take(1).ToArray(); // source language(s) to use 
+            var sourceLanguage = allLanguageIds.Take(1).ToList(); // source language(s) to use 
             var targetLanguages = english != null 
-                ? new []{ english.Id } 
-                : allLanguageIds.Skip(1).Take(1).Where(x => x > 0).ToArray(); // target language(s) to use (Optional, only used if not Source analysis is used)
+                ? new List<int>{ english.Id } 
+                : allLanguageIds.Skip(1).Take(1).Where(x => x > 0).ToList(); // target language(s) to use (Optional, only used if not Source analysis is used)
 
             var segment = new Segment { SourceValue = "Some sentence to analyze.", Id = "UNIQUE-ID", Index = 0 }; //Id and Index is optional for this endpoint, however it might be useful or client side if you have any segment-id
-            var analysisResults = await kalcClient.AnalysisService.AnalyzeSegmentAsync(segment, profileId, sourceLanguage, targetLanguages, AnalyzeType.Source);
-            foreach (var result in analysisResults.AnalyzeResultPairs)
+            var request = new AnalysisSegmentInputModel
             {
-                var isProblematical = result.Source.IsProblematical; //true if it is problematical based on the analysis profile settings 
+                Input = segment,
+                ProfileId = profileId,
+                SourceLanguages = sourceLanguage,
+                TargetLanguages = targetLanguages,
+                AnalyzeType = AnalyzeType.Source
+            };
+            var analysisResults = await kalcClient.AnalysisService.AnalyzeSegmentAsync(request, false);
+            foreach (var result in analysisResults.Results)
+            {
+                var isProblematical = result.IsProblematical; //true if it is problematical based on the analysis profile settings 
                 if (isProblematical)
                 {
                     Log($"Problematical hit is found '{result.Source.Searched}'");

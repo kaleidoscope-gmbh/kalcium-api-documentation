@@ -211,7 +211,7 @@ namespace Kaleidoscope.Kalcium.TestClient
                 }
                 Log($" > Adding media field {ee.Fields.Last().Name}: {ee.Fields.Last().Value}");
             }
-            var createdEntry = await kalcClient.TerminologyService.CreateEntryAsync(ee, termbase.Id, mediaFiles);
+            var createdEntry = await kalcClient.TerminologyService.CreateEntryAsync(ee, termbase.Id, null, mediaFiles);
             Log($" > Entry created with id #{createdEntry.Id.UUID}");
             Log(JsonConvert.SerializeObject(createdEntry, Formatting.Indented));
 
